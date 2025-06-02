@@ -42,7 +42,7 @@ func main() {
 	}
 
 	if prompt == "" {
-		fmt.Fprintln(os.Stderr, "Error: No prompt provided")
+		fmt.Fprintln(os.Stderr, "Usage: converse [--file] PROMPT\n")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
