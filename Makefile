@@ -21,4 +21,4 @@ dist/%:
 	GOOS=$(word 1, $(subst /, ,$@))
 	GOARCH=$(word 2, $(subst /, ,$@))
 	GOARM=$(word 3, $(subst /, ,$@))
-	CGO_ENABLED=0 GOOS=$${GOOS} GOARCH=$${GOARCH} GOARM=$${GOARM} go build $(LDFLAGS) -o dist/$@/$(BINARY) ./main.go
+	CGO_ENABLED=0 GOOS=$${GOOS} GOARCH=$${GOARCH} GOARM=$${GOARM} go build $(LDFLAGS) -o $@/$(BINARY) ./main.go

@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -21,39 +22,49 @@ const (
 )
 
 func main() {
-	// Parse command line arguments
+	file := flag.String("file", "", "Optional file path to read")
+	flag.StringVar(file, "f", "", "Optional file path to read (shorthand)")
 	flag.Parse()
+
+	fileBuffer := ""
+	if *file != "" {
+		buf, err := ioutil.ReadFile(*file)
+		if err != nil {
+			fmt.Println("Error reading file:", err)
+			os.Exit(1)
+		}
+		fileBuffer = string(buf)
+	}
+
 	prompt := strings.Join(flag.Args(), " ")
+	if fileBuffer != "" {
+		prompt = prompt + " - use the following file contents:\n" + fileBuffer
+	}
 
 	if prompt == "" {
 		fmt.Fprintln(os.Stderr, "Error: No prompt provided")
-		fmt.Fprintln(os.Stderr, "Usage: converse <prompt>")
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
-	// Configure AWS SDK
 	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading AWS configuration: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Create Bedrock client
 	client := bedrockruntime.NewFromConfig(cfg)
 
-	// Call Claude via AWS Bedrock
 	response, err := callClaude(client, prompt)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error calling Claude: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Write response to stdout
 	fmt.Print(response)
 }
 
 func callClaude(client *bedrockruntime.Client, prompt string) (string, error) {
-	// Create the request payload
 	payload := map[string]interface{}{
 		"anthropic_version": "bedrock-2023-05-31",
 		"max_tokens":		4096 * 16,
@@ -69,32 +80,28 @@ func callClaude(client *bedrockruntime.Client, prompt string) (string, error) {
 			},
 		},
 	}
-	// Convert payload to JSON
+
 	payloadBytes, err := marshalJSON(payload)
 	if err != nil {
 		return "", fmt.Errorf("error marshaling request: %w", err)
 	}
 
-	// Create the API request
 	input := &bedrockruntime.InvokeModelInput{
 		ModelId:	 aws.String(modelID),
 		ContentType: aws.String("application/json"),
 		Body:		payloadBytes,
 	}
 
-	// Call the API
 	resp, err := client.InvokeModel(context.Background(), input)
 	if err != nil {
 		return "", fmt.Errorf("error invoking model: %w", err)
 	}
 
-	// Parse the response
 	var responseBody map[string]interface{}
 	if err := unmarshalJSON(bytes.NewReader(resp.Body), &responseBody); err != nil {
 		return "", fmt.Errorf("error unmarshaling response: %w", err)
 	}
 
-	// Extract the content from the response
 	messages, ok := responseBody["content"].([]interface{})
 	if !ok || len(messages) == 0 {
 		return "", fmt.Errorf("unexpected response format")
@@ -115,7 +122,6 @@ func callClaude(client *bedrockruntime.Client, prompt string) (string, error) {
 	return result.String(), nil
 }
 
-// Helper functions for JSON marshaling/unmarshaling
 func marshalJSON(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
