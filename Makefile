@@ -1,7 +1,7 @@
 BINARY := converse
 PLATFORMS := windows/amd64 linux/amd64 darwin/amd64
 
-.PHONY: build test install cross
+.PHONY: build test install cross dist
 
 build:
 	go build -o $(BINARY) ./main.go
