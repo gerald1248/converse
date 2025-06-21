@@ -1,11 +1,25 @@
 # Converse
 CLI for simple Converse API calls to Claude Sonnet
 
-# Install
+Requires AWS access - call `aws sso` to assume a suitable role with access to Bedrock.
+
+# Run
 ```
-wget https://github.com/gerald1248/converse/releases/download/v1.0.4/converse-linux-amd64
-chmod +x converse-linux-amd64
-sudo cp converse-linux-amd64 /usr/local/bin/converse
+converse -f app.py "write unit tests for the attached Python script"
+converse -v 3.5 "bubble sort in C#"
+```
+
+In vim:
+```
+:r! converse "hash table in C"
+```
+
+# Install (Linux)
+```
+wget https://github.com/gerald1248/converse/releases/download/v1.0.5/converse-linux-amd64.zip
+unzip converse-linux-amd64.zip
+chmod +x converse
+sudo cp converse /usr/local/bin/converse
 ```
 
 # Build
@@ -13,7 +27,7 @@ sudo cp converse-linux-amd64 /usr/local/bin/converse
 make build
 ```
 
-# Cross-compilation
+# Cross-compilation (Linux, Mac, Windows)
 ```
-make cross
+make xcompile
 ```
