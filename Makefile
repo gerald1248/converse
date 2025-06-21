@@ -12,7 +12,8 @@ test:
 vet:
 	go vet ./...
 
-install:	                                                                                                                                        go install $(LDFLAGS) ./main.go
+install:
+	go install $(LDFLAGS) ./main.go
 
 xcompile:
 	./xcompile.sh
