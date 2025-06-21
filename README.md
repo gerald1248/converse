@@ -33,3 +33,56 @@ make build
 ```
 make xcompile
 ```
+
+# Input/output flow
+
+```mermaid
+graph TB
+    subgraph Input
+        command[Command Line Arguments]
+        file[Optional Input File]
+        AWS[AWS Configuration]
+    end
+
+    subgraph Processing
+        main[Main Function]
+        parseArgs[Parse Arguments]
+        loadFile[Load File Content]
+        configAWS[Load AWS Config]
+        streamFunc[Stream Claude]
+        callFunc[Call Claude]
+        marshalFunc[Marshal JSON]
+        unmarshalFunc[Unmarshal JSON]
+    end
+
+    subgraph External
+        bedrock[AWS Bedrock Runtime]
+    end
+
+    subgraph Output
+        response[Response Text]
+        streamOutput[Streamed Output]
+        errorOutput[Error Output]
+    end
+
+    command --> parseArgs
+    file --> loadFile
+    parseArgs --> main
+    loadFile --> main
+    AWS --> configAWS
+    configAWS --> bedrock
+
+    main --> streamFunc
+    main --> callFunc
+
+    streamFunc --> bedrock
+    callFunc --> marshalFunc
+    marshalFunc --> bedrock
+    bedrock --> unmarshalFunc
+
+    callFunc --> response
+    streamFunc --> streamOutput
+                                                                                                                                                                                                main -- Error --> errorOutput
+    streamFunc -- Error --> errorOutput
+    callFunc -- Error --> errorOutput
+```
