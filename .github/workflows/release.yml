@@ -13,6 +13,7 @@ jobs:
       - run: |
           tag="${GITHUB_REF#refs/tags/}"
           echo "Tag: $tag"
+          make xcompile
 
       - uses: actions/create-release@v1
         id: create_release
@@ -30,22 +31,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/darwin/amd64/converse
-          asset_name: converse-darwin-amd64
+          asset_path: ./dist/converse-darwin-amd64.zip
+          asset_name: converse-darwin-amd64.zip
           asset_content_type: application/octet-stream
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/linux/amd64/converse
-          asset_name: converse-linux-amd64
+          asset_path: ./dist/converse-linux-amd64.zip
+          asset_name: converse-linux-amd64.zip
           asset_content_type: application/octet-stream
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/windows/amd64/converse
-          asset_name: converse-windows-amd64.exe
+          asset_path: ./dist/converse-windows-amd64.zip
+          asset_name: converse-windows-amd64.zip
           asset_content_type: application/octet-stream
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/release.txt
+          asset_name: release.txt
+          asset_content_type: text/plain

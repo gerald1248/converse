@@ -18,12 +18,13 @@ import (
 
 const (
 	systemPrompt = "You are a coding assistant. Output only code without explanations, comments, or any other text. Do not wrap the code in markdown code blocks."
-	modelID	  = "anthropic.claude-3-sonnet-20240229-v1:0"
 )
 
 func main() {
 	file := flag.String("file", "", "Optional file path to read")
 	flag.StringVar(file, "f", "", "Optional file path to read (shorthand)")
+	version := flag.String("version", "3.7", "Optional Claude Sonnet version - 3, 3.5, 3.7")
+	flag.StringVar(version, "v", "3.7", "Optional Claude Sonnet version - 3, 3.5, 3.7 (shorthand)")
 	flag.Parse()
 
 	fileBuffer := ""
@@ -34,6 +35,15 @@ func main() {
 			os.Exit(1)
 		}
 		fileBuffer = string(buf)
+	}
+
+	modelID := ""
+	if *version == "3.7" {
+		modelID = "eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
+	} else if *version == "3.5" {
+		modelID = "eu.anthropic.claude-3-5-sonnet-20240620-v1:0"
+	} else {
+		modelID = "anthropic.claude-3-sonnet-20240229-v1:0"
 	}
 
 	prompt := strings.Join(flag.Args(), " ")
@@ -55,16 +65,16 @@ func main() {
 
 	client := bedrockruntime.NewFromConfig(cfg)
 
-	response, err := callClaude(client, prompt)
+	response, err := callClaude(client, modelID, prompt)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error calling Claude: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error calling Claude Sonnet: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Print(response)
+	fmt.Println(response)
 }
 
-func callClaude(client *bedrockruntime.Client, prompt string) (string, error) {
+func callClaude(client *bedrockruntime.Client, modelID string, prompt string) (string, error) {
 	payload := map[string]interface{}{
 		"anthropic_version": "bedrock-2023-05-31",
 		"max_tokens":		4096 * 16,
@@ -87,9 +97,9 @@ func callClaude(client *bedrockruntime.Client, prompt string) (string, error) {
 	}
 
 	input := &bedrockruntime.InvokeModelInput{
-		ModelId:	 aws.String(modelID),
+		ModelId: aws.String(modelID),
 		ContentType: aws.String("application/json"),
-		Body:		payloadBytes,
+		Body: payloadBytes,
 	}
 
 	resp, err := client.InvokeModel(context.Background(), input)

@@ -12,13 +12,7 @@ test:
 vet:
 	go vet ./...
 
-install:
-	go install $(LDFLAGS) ./main.go
+install:	                                                                                                                                        go install $(LDFLAGS) ./main.go
 
-cross: $(addprefix dist/,$(PLATFORMS))
-
-dist/%:
-	GOOS=$(word 1, $(subst /, ,$@))
-	GOARCH=$(word 2, $(subst /, ,$@))
-	GOARM=$(word 3, $(subst /, ,$@))
-	CGO_ENABLED=0 GOOS=$${GOOS} GOARCH=$${GOARCH} GOARM=$${GOARM} go build $(LDFLAGS) -o $@/$(BINARY) ./main.go
+xcompile:
+	./xcompile.sh
