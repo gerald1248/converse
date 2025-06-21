@@ -1,11 +1,13 @@
 # Converse
-CLI for simple Converse API calls to Claude Sonnet
+CLI for simple Converse API calls to Claude Sonnet.
+
+It offers no explanations or pleasantries, only code.
 
 Requires AWS access - call `aws sso` to assume a suitable role with access to Bedrock.
 
 # Run
 ```
-converse -f app.py "write unit tests for the attached Python script"
+converse -f app.py "write some unit tests"
 converse -v 3.5 "bubble sort in C#"
 ```
 
