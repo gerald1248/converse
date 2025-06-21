@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 )
 
 const (
@@ -25,6 +26,8 @@ func main() {
 	flag.StringVar(file, "f", "", "Optional file path to read (shorthand)")
 	version := flag.String("version", "3.7", "Optional Claude Sonnet version - 3, 3.5, 3.7")
 	flag.StringVar(version, "v", "3.7", "Optional Claude Sonnet version - 3, 3.5, 3.7 (shorthand)")
+	stream := flag.Bool("stream", false, "Stream tokens as they're generated")
+	flag.BoolVar(stream, "s", false, "Stream tokens as they're generated (shorthand)")
 	flag.Parse()
 
 	fileBuffer := ""
@@ -65,22 +68,29 @@ func main() {
 
 	client := bedrockruntime.NewFromConfig(cfg)
 
-	response, err := callClaude(client, modelID, prompt)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error calling Claude Sonnet: %v\n", err)
-		os.Exit(1)
+	if *stream {
+		err = streamClaude(client, modelID, prompt)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error streaming from Claude Sonnet: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		response, err := callClaude(client, modelID, prompt)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error calling Claude Sonnet: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println(response)
 	}
-
-	fmt.Println(response)
 }
 
 func callClaude(client *bedrockruntime.Client, modelID string, prompt string) (string, error) {
 	payload := map[string]interface{}{
 		"anthropic_version": "bedrock-2023-05-31",
-		"max_tokens":		4096 * 16,
+		"max_tokens":        4096 * 16,
 		"messages": []map[string]interface{}{
 			{
-				"role":	"user",
+				"role": "user",
 				"content": []map[string]string{
 					{
 						"type": "text",
@@ -97,9 +107,9 @@ func callClaude(client *bedrockruntime.Client, modelID string, prompt string) (s
 	}
 
 	input := &bedrockruntime.InvokeModelInput{
-		ModelId: aws.String(modelID),
+		ModelId:     aws.String(modelID),
 		ContentType: aws.String("application/json"),
-		Body: payloadBytes,
+		Body:        payloadBytes,
 	}
 
 	resp, err := client.InvokeModel(context.Background(), input)
@@ -132,6 +142,68 @@ func callClaude(client *bedrockruntime.Client, modelID string, prompt string) (s
 	return result.String(), nil
 }
 
+func streamClaude(client *bedrockruntime.Client, modelID string, prompt string) error {
+	payload := map[string]interface{}{
+		"anthropic_version": "bedrock-2023-05-31",
+		"max_tokens":        4096 * 16,
+		"messages": []map[string]interface{}{
+			{
+				"role": "user",
+				"content": []map[string]string{
+					{
+						"type": "text",
+						"text": systemPrompt + "\n\n" + prompt,
+					},
+				},
+			},
+		},
+	}
+
+	payloadBytes, err := marshalJSON(payload)
+	if err != nil {
+		return fmt.Errorf("error marshaling request: %w", err)
+	}
+
+	input := &bedrockruntime.InvokeModelWithResponseStreamInput{
+		ModelId:     aws.String(modelID),
+		ContentType: aws.String("application/json"),
+		Body:        payloadBytes,
+	}
+
+	resp, err := client.InvokeModelWithResponseStream(context.Background(), input)
+	if err != nil {
+		return fmt.Errorf("error invoking model stream: %w", err)
+	}
+
+	for event := range resp.GetStream().Events() {
+		switch v := event.(type) {
+		case *types.ResponseStreamMemberChunk:
+			var chunkData map[string]interface{}
+			if err := json.Unmarshal([]byte(v.Value.Bytes), &chunkData); err != nil {
+				return fmt.Errorf("error unmarshaling chunk: %w", err)
+			}
+
+			if delta, ok := chunkData["delta"]; ok {
+				deltaMap, ok := delta.(map[string]interface{})
+				if !ok {
+					continue
+				}
+
+				if content, ok := deltaMap["text"].(string); ok {
+					fmt.Print(content)
+				}
+			}
+		case *types.UnknownUnionMember:
+			fmt.Errorf("unknown tag: %s", v.Tag)
+
+		default:
+			fmt.Errorf("union is nil or unknown type")
+		}
+	}
+	fmt.Println()
+	return nil
+}
+
 func marshalJSON(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
@@ -139,3 +211,4 @@ func marshalJSON(v interface{}) ([]byte, error) {
 func unmarshalJSON(r io.Reader, v interface{}) error {
 	return json.NewDecoder(r).Decode(v)
 }
+
