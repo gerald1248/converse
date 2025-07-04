@@ -1,5 +1,5 @@
 # Converse
-CLI for simple Converse API calls to Claude Sonnet.
+CLI for simple Converse API calls to Claude Sonnet. From version 1.0.7 it defaults to Claude 4 Sonnet.
 
 It offers no explanations or pleasantries, only code.
 
@@ -14,6 +14,23 @@ converse -v 3.5 "bubble sort in C#"
 In vim:
 ```
 :r! converse "hash table in C"
+```
+
+# Usage
+```
+Usage: converse [--file] PROMPT
+
+  -f string
+        Optional file path to read (shorthand)
+  -file string
+        Optional file path to read
+  -s    Stream tokens as they're generated (shorthand)
+  -stream
+        Stream tokens as they're generated
+  -v string
+        Optional Claude Sonnet version - 3, 3.5, 3.7 (shorthand) (default "4")
+  -version string
+        Optional Claude Sonnet version - 3, 3.5, 3.7 (default "4")
 ```
 
 # Install (Linux)
@@ -82,7 +99,7 @@ graph TB
 
     callFunc --> response
     streamFunc --> streamOutput
-                                                                                                                                                                                                main -- Error --> errorOutput
+    main -- Error --> errorOutput
     streamFunc -- Error --> errorOutput
     callFunc -- Error --> errorOutput
 ```
