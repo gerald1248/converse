@@ -35,7 +35,7 @@ Usage: converse [--file] PROMPT
 
 # Install (Linux)
 ```
-wget https://github.com/gerald1248/converse/releases/download/v1.0.6/converse-linux-amd64.zip
+wget https://github.com/gerald1248/converse/releases/download/v1.0.8/converse-linux-amd64.zip
 unzip converse-linux-amd64.zip
 chmod +x converse
 sudo cp converse /usr/local/bin/converse
