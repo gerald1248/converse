@@ -24,8 +24,8 @@ const (
 func main() {
 	file := flag.String("file", "", "Optional file path to read")
 	flag.StringVar(file, "f", "", "Optional file path to read (shorthand)")
-	version := flag.String("version", "3.7", "Optional Claude Sonnet version - 3, 3.5, 3.7")
-	flag.StringVar(version, "v", "3.7", "Optional Claude Sonnet version - 3, 3.5, 3.7 (shorthand)")
+	version := flag.String("version", "4", "Optional Claude Sonnet version - 3, 3.5, 3.7")
+	flag.StringVar(version, "v", "4", "Optional Claude Sonnet version - 3, 3.5, 3.7 (shorthand)")
 	stream := flag.Bool("stream", false, "Stream tokens as they're generated")
 	flag.BoolVar(stream, "s", false, "Stream tokens as they're generated (shorthand)")
 	flag.Parse()
@@ -41,7 +41,9 @@ func main() {
 	}
 
 	modelID := ""
-	if *version == "3.7" {
+	if *version == "4" {
+		modelID = "eu.anthropic.claude-sonnet-4-20250514-v1:0"
+	} else if *version == "3.7" {
 		modelID = "eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
 	} else if *version == "3.5" {
 		modelID = "eu.anthropic.claude-3-5-sonnet-20240620-v1:0"
