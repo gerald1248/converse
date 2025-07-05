@@ -30,6 +30,7 @@ func main() {
 	flag.BoolVar(stream, "s", false, "Stream tokens as they're generated (shorthand)")
 	flag.Parse()
 
+	// file input
 	fileBuffer := ""
 	if *file != "" {
 		buf, err := ioutil.ReadFile(*file)
@@ -38,6 +39,23 @@ func main() {
 			os.Exit(1)
 		}
 		fileBuffer = string(buf)
+	}
+
+	// STDIN
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		stdinBytes, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			fmt.Println("Error reading stdin:", err)
+			os.Exit(1)
+		}
+		if len(stdinBytes) > 0 {
+			if fileBuffer != "" {
+				fileBuffer = fileBuffer + "\n" + string(stdinBytes)
+			} else {
+				fileBuffer = string(stdinBytes)
+			}
+		}
 	}
 
 	modelID := ""
@@ -213,4 +231,3 @@ func marshalJSON(v interface{}) ([]byte, error) {
 func unmarshalJSON(r io.Reader, v interface{}) error {
 	return json.NewDecoder(r).Decode(v)
 }
-

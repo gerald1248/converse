@@ -9,6 +9,8 @@ Requires AWS access - call `aws sso` to assume a suitable role with access to Be
 ```
 converse -f app.py "write some unit tests"
 converse -v 3.5 "bubble sort in C#"
+converse -s "convert to YAML" <policy.json
+helm template . | converse "create a Mermaid diagram for this chart"
 ```
 
 In vim:
@@ -18,7 +20,7 @@ In vim:
 
 # Usage
 ```
-Usage: converse [--file] PROMPT
+Usage: converse [--file FILE] [--stream] [--version VERSION] PROMPT
 
   -f string
         Optional file path to read (shorthand)
@@ -28,14 +30,14 @@ Usage: converse [--file] PROMPT
   -stream
         Stream tokens as they're generated
   -v string
-        Optional Claude Sonnet version - 3, 3.5, 3.7 (shorthand) (default "4")
+        Optional Claude Sonnet version - 3, 3.5, 3.7, 4 (shorthand) (default "4")
   -version string
-        Optional Claude Sonnet version - 3, 3.5, 3.7 (default "4")
+        Optional Claude Sonnet version - 3, 3.5, 3.7, 4 (default "4")
 ```
 
 # Install (Linux)
 ```
-wget https://github.com/gerald1248/converse/releases/download/v1.0.8/converse-linux-amd64.zip
+wget https://github.com/gerald1248/converse/releases/download/v1.0.9/converse-linux-amd64.zip
 unzip converse-linux-amd64.zip
 chmod +x converse
 sudo cp converse /usr/local/bin/converse
